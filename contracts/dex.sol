@@ -73,7 +73,7 @@ contract Dex is Wallet {
 
         nextOrderId++;
     }
-
+    //Create Market Order
     function createMarketOrder(Side side, bytes32 ticker, uint amount) public{
         if(side == Side.SELL){
             require(balances[msg.sender][ticker] >= amount, "Insuffient balance");
