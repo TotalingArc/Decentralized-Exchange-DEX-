@@ -4,6 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "./Wallet.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Dex is Wallet {
     using SafeMath for uint256;
@@ -38,21 +39,17 @@ contract Dex is Wallet {
         require(price > 0, "Price must be greater than zero");
         require(amount > 0, "Amount must be greater than zero");
 
-        if(side == Side.BUY){
+        if (side == Side.BUY) {
             require(balances[msg.sender]["ETH"] >= amount.mul(price), "Insufficient ETH balance");
-        }
-        else if(side == Side.SELL){
+        } else if (side == Side.SELL) {
             require(balances[msg.sender][ticker] >= amount, "Insufficient token balance");
         }
 
         Order[] storage orders = orderBook[ticker][uint(side)];
-        orders.push(
-            Order(nextOrderId, msg.sender, side, ticker, amount, price, 0)
-        );
+        orders.push(Order(nextOrderId, msg.sender, side, ticker, amount, price, 0));
 
         emit OrderCreated(nextOrderId, msg.sender, side, ticker, amount, price, 0);
 
-        // Increment order ID for the next order
         nextOrderId++;
     }
 
@@ -60,16 +57,15 @@ contract Dex is Wallet {
         require(ticker != bytes32(0), "Ticker cannot be empty");
         require(amount > 0, "Amount must be greater than zero");
 
-        if(side == Side.SELL){
+        if (side == Side.SELL) {
             require(balances[msg.sender][ticker] >= amount, "Insufficient token balance");
         }
 
         uint orderBookSide = side == Side.BUY ? 1 : 0;
         Order[] storage orders = orderBook[ticker][orderBookSide];
-
         uint totalFilled = 0;
 
-        for (uint256 i = 0; i < orders.length && totalFilled < amount; i++) {
+        for (uint i = 0; i < orders.length && totalFilled < amount; i++) {
             uint leftToFill = amount.sub(totalFilled);
             uint availableToFill = orders[i].amount.sub(orders[i].filled);
             uint filled = leftToFill > availableToFill ? availableToFill : leftToFill;
@@ -78,15 +74,14 @@ contract Dex is Wallet {
             orders[i].filled = orders[i].filled.add(filled);
             uint cost = filled.mul(orders[i].price);
 
-            if(side == Side.BUY){
+            if (side == Side.BUY) {
                 require(balances[msg.sender]["ETH"] >= cost, "Insufficient ETH balance");
 
                 // Transfer tokens from trader to buyer
                 transferTokens(orders[i].trader, msg.sender, ticker, filled);
                 // Transfer ETH from buyer to trader
                 transferETH(msg.sender, orders[i].trader, cost);
-            }
-            else if(side == Side.SELL){
+            } else if (side == Side.SELL) {
                 // Transfer tokens from seller to trader
                 transferTokens(msg.sender, orders[i].trader, ticker, filled);
                 // Transfer ETH from trader to seller
@@ -94,7 +89,6 @@ contract Dex is Wallet {
             }
         }
 
-        // Remove fully filled orders from the order book
         removeFilledOrders(ticker, side);
     }
 
@@ -105,13 +99,23 @@ contract Dex is Wallet {
             i++;
         }
         if (i > 0) {
-            for (uint256 j = 0; j < orders.length - i; j++) {
+            for (uint j = 0; j < orders.length - i; j++) {
                 orders[j] = orders[j + i];
             }
-            for (uint256 j = orders.length - i; j < orders.length; j++) {
+            for (uint j = orders.length - i; j < orders.length; j++) {
                 delete orders[j];
             }
             orders.pop();
         }
+    }
+
+    function transferTokens(address from, address to, bytes32 ticker, uint amount) private {
+        balances[from][ticker] = balances[from][ticker].sub(amount);
+        balances[to][ticker] = balances[to][ticker].add(amount);
+    }
+
+    function transferETH(address from, address to, uint amount) private {
+        balances[from]["ETH"] = balances[from]["ETH"].sub(amount);
+        balances[to]["ETH"] = balances[to]["ETH"].add(amount);
     }
 }
