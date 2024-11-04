@@ -11,7 +11,7 @@ This Solidity smart contract implements a decentralized exchange (DEX) allowing 
 - **Gas Efficiency**: Gas-efficient implementations are employed to optimize contract execution costs, minimizing transaction fees for users.
 - **Security Measures**: Best practices for smart contract security are followed, including the use of SafeMath for arithmetic operations and access control to restrict function calls.
 
-## Prerequisites
+### Prerequisites
 
 - Solidity Compiler: Ensure you have a compatible Solidity compiler installed. The contract is designed for Solidity version `>=0.7.0 <0.9.0`.
 - Ethereum Development Environment: Set up an Ethereum development environment such as Truffle or Hardhat for contract deployment and testing.
