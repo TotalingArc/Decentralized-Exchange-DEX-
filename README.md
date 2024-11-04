@@ -35,7 +35,7 @@ This Solidity smart contract implements a decentralized exchange (DEX) allowing 
 - **Safe Arithmetic Operations**: Utilize SafeMath or equivalent libraries to prevent arithmetic overflows and underflows.
 - **Input Validation**: Validate user inputs and ensure that all parameters meet expected constraints to prevent unintended behavior.
 
-## Gas Efficiency
+### Gas Efficiency
 
 - **View Functions**: Utilize view functions for read-only operations to minimize gas consumption.
 - **Optimized Storage Usage**: Limit unnecessary storage writes and optimize data structures to reduce gas costs.
